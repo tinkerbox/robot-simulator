@@ -1,0 +1,4 @@
+task :test do
+  $LOAD_PATH << 'lib' << 'spec'
+  Dir.glob('./spec/**/*_spec.rb') { |file| require file }
+end
