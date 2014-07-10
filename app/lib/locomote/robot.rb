@@ -27,7 +27,7 @@ class Robot
       # Robot needs to be placed inside the provided grid
       if point.within?(@grid) then
         @position = point
-        @orientation = f
+        @orientation = f.to_sym
       end
     end
   end
