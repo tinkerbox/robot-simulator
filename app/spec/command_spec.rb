@@ -18,6 +18,4 @@ describe Command do
 		command.params.must_equal ["1", "1", "north"]
 	end
 
-
-
 end
