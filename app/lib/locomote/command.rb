@@ -2,24 +2,23 @@ class Command
 
   attr_reader :name, :params
 
-  # Create a new command from a string
-  def self.parse(data)
+  def self.parse(input, &block)
+
     # Ignore zero length commands
-    if data.length > 0 then
-      # Split up arguments
-      args = data.split(" ")
-      name = args[0].downcase.to_sym
-      params = args[1].split(",") if args[1]
-      # Create and return a new Command
-      command = allocate
-      command.send(:initialize, name, params)
-      command
-    end
+    return nil if input.length < 1
+
+    args = input.split(" ")
+    
+    command = Command.new(args[0].downcase.to_sym, args[1].split(","))
+
+    block.call(command) if block_given?
+
+    command
   end
 
-  def initialize(name, params = nil)
+  def initialize(name, params)
     @name = name
-    @params = params
+    @params = params || []
   end
 
 end

@@ -10,6 +10,10 @@ grid = {
 robot = Robot.new(grid)
 
 while input = gets do
-  command = Command.parse(input.chomp)
-  robot.execute(command) if command
+
+  Command.parse(input.chomp) do |command|
+  	robot.execute(command)
+  	robot.report
+  end
+  
 end
