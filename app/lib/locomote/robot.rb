@@ -1,35 +1,57 @@
 class Robot
 
-  MOVEDELTA = {
+  MOVE_DELTA = {
     north: { x:  0, y:  1 },
     south: { x:  0, y: -1 },
     east:  { x:  1, y:  0 },
     west:  { x: -1, y:  0 }
   }
 
-  DIR = [:north, :east, :south, :west]
+  ORIENTATIONS = [:north, :east, :south, :west]
+
+  attr_reader :position, :orientation, :grid
 
   def initialize(grid)
     @grid = grid
   end
 
-  # Attempt to have the Robot execute a command
   def execute(command)
-    if (isPlaced? or command.name == :place)
-      send(command.name, *command.params) if respond_to?(command.name) # Could possiby use a command map to make this more flexible
-    end
+    raise "Robot is not placed" if command.name != :place && !is_placed?
+    self.send(command.name, *command.params)
   end
 
-  # Attempt to place the Robot on a Point on the provided grid, and face it in the provided direction
-  def place(x = nil, y = nil, f = nil)
-    if (x and y and f)
-      point = Point.new(x.to_i, y.to_i) # De-couple?
-      # Robot needs to be placed inside the provided grid
-      if point.within?(@grid) then
-        @position = point
-        @orientation = f.downcase.to_sym
-      end
-    end
+  protected
+
+  def is_placed?
+    @position && @orientation
+  end
+
+  def rotate(direction)
+    new_index = ORIENTATIONS.index(@orientation) + (direction == :right ? 1 : -1)
+
+    new_index = ORIENTATIONS.length - 1 if new_index < 0
+    new_index = 0 if new_index > ORIENTATIONS.length - 1
+
+    @orientation = ORIENTATIONS[new_index]
+  end
+
+  private
+
+  def place(x = nil, y = nil, direction = nil)
+
+    raise "Invalid parameters for #place: x, y or direction is empty" if direction.nil? || x.nil? || y.nil?
+
+    direction = direction.downcase.to_sym
+
+    raise "Invalid parameters for #place: direction is not north, south, east or west" unless ORIENTATIONS.include? direction
+
+    point = Point.new(x, y)
+
+    raise "Invalid parameters for #place: location is not within grid" unless self.grid.is_within?(point)
+
+    @position = point
+    @orientation = direction
+
   end
 
   def left
@@ -40,50 +62,17 @@ class Robot
     rotate(:right)
   end
 
-  # Attempt to move the robot one grid unit in the direction it is facing
   def move
-    d = MOVEDELTA
-    dx = d[@orientation][:x]
-    dy = d[@orientation][:y]
-    moveBy(dx, dy)
+    dx = MOVE_DELTA[@orientation][:x]
+    dy = MOVE_DELTA[@orientation][:y]
+
+    @position.translate(dx, dy) do |destination|
+      @position = destination if self.grid.is_within?(destination)
+    end
   end
 
-  # Report the current position and orientation of the Robot
   def report
-    # Robot can't report it's position until it is placed on a grid
     puts "#{@position.x.to_s}, #{@position.y.to_s}, #{@orientation.to_s}"
   end
-  
-  # Check if the Robot has been placed on a grid
-  def isPlaced?
-    return !!@position # Is there a Ruby idiomatic way to do this?
-  end
 
-  private
-
-  # Attempt to move the robot on the grid
-  def moveBy(dx, dy)
-    # Robot should never move more than one grid unit at a time
-    unless dx.abs + dy.abs > 1 then
-      destination = @position.clone.move(dx, dy)
-      # Make sure the destination is inside the Grid our robot is placed on
-      if destination.within?(@grid) then
-        @position = destination
-      end
-    end
-  end
-
-  def rotate(direction)
-    delta = direction == :right ? 1 : -1
-    
-    currentIndex = DIR.index(@orientation)
-    newIndex = currentIndex + delta
-    if newIndex < 0 then
-      @orientation = DIR[DIR.length - 1]
-    elsif newIndex > DIR.length - 1 then
-      @orientation = DIR[0]
-    else
-      @orientation = DIR[newIndex]
-    end
-  end
 end
