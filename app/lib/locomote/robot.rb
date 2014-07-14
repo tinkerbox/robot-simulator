@@ -74,7 +74,8 @@ class Robot
   end
 
   def rotate(direction)
-    delta = (if direction == :right then 1 else (-1) end)
+    delta = direction == :right ? 1 : -1
+    
     currentIndex = DIR.index(@orientation)
     newIndex = currentIndex + delta
     if newIndex < 0 then
